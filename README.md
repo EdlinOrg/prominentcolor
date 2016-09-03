@@ -1,3 +1,6 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/EdlinOrg/prominentcolor)](https://goreportcard.com/report/github.com/EdlinOrg/prominentcolor)
+[![GoDoc](https://godoc.org/github.com/EdlinOrg/prominentcolor?status.svg)](https://godoc.org/github.com/EdlinOrg/prominentcolor)
+
 # prominentcolor
 
 ## Find the K most dominant colors in an image
