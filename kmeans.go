@@ -92,23 +92,26 @@ func GetDefaultMasks() []ColorBackgroundMask {
 
 // Kmeans uses the default: k=3, Kmeans++, Median, crop center, resize to 80 pixels, mask out white/black/green backgrounds
 // It returns an array of ColorItem which are three centroids, sorted according to dominance (most frequent first).
-func Kmeans(orgimg image.Image) (centroids []ColorItem) {
+func Kmeans(orgimg image.Image) (centroids []ColorItem, err error) {
 	return KmeansWithAll(DefaultK, orgimg, ArgumentDefault, DefaultSize, GetDefaultMasks())
 }
 
 // KmeansWithArgs takes arguments which consists of the bits, see constants Argument*
-func KmeansWithArgs(arguments int, orgimg image.Image) (centroids []ColorItem) {
+func KmeansWithArgs(arguments int, orgimg image.Image) (centroids []ColorItem, err error) {
 	return KmeansWithAll(DefaultK, orgimg, arguments, DefaultSize, GetDefaultMasks())
 }
 
 // KmeansWithAll takes additional arguments to define k, arguments (see constants Argument*), size to resize and masks to use
-func KmeansWithAll(k int, orgimg image.Image, arguments int, imageReSize uint, bgmasks []ColorBackgroundMask) []ColorItem {
+func KmeansWithAll(k int, orgimg image.Image, arguments int, imageReSize uint, bgmasks []ColorBackgroundMask) ([]ColorItem, error) {
 
 	img := prepareImg(arguments, bgmasks, imageReSize, orgimg)
 
 	allColors, _ := extractColorsAsArray(img)
 
-	centroids := kmeansSeed(k, allColors, arguments)
+	centroids, err := kmeansSeed(k, allColors, arguments)
+	if err != nil {
+		return nil, err
+	}
 
 	cent := make([][]ColorItem, k)
 
@@ -150,7 +153,7 @@ func KmeansWithAll(k int, orgimg image.Image, arguments int, imageReSize uint, b
 	}
 
 	sortCentroids(centroids)
-	return centroids
+	return centroids, nil
 }
 
 // ByColorCnt makes the ColorItem sortable
@@ -344,17 +347,17 @@ func distanceRGB(c ColorItem, p ColorItem) float64 {
 }
 
 // kmeansSeed calculates the initial cluster centroids
-func kmeansSeed(k int, allColors []ColorItem, arguments int) []ColorItem {
+func kmeansSeed(k int, allColors []ColorItem, arguments int) ([]ColorItem, error) {
 	if k > len(allColors) {
-		log.Printf("Failed, k larger than len(allColors): %d vs %d\n", k, len(allColors))
+		return nil, fmt.Errorf("Failed, k larger than len(allColors): %d vs %d\n", k, len(allColors))
 	}
 
 	rand.Seed(time.Now().UnixNano())
 
 	if IsBitSet(arguments, ArgumentSeedRandom) {
-		return kmeansSeedRandom(k, allColors)
+		return kmeansSeedRandom(k, allColors), nil
 	}
-	return kmeansPlusPlusSeed(k, arguments, allColors)
+	return kmeansPlusPlusSeed(k, arguments, allColors), nil
 }
 
 // kmeansSeedRandom picks k random points as initial centroids
