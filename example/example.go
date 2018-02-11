@@ -10,7 +10,7 @@ import (
 
 	"strconv"
 
-	prominentcolor "../"
+	prominentcolor ".."
 )
 
 func loadImage(fileInput string) (image.Image, error) {
@@ -52,7 +52,11 @@ func processBatch(k int, bitarr []int, img image.Image) string {
 	bgmasks := prominentcolor.GetDefaultMasks()
 
 	for i := 0; i < len(bitarr); i++ {
-		res := prominentcolor.KmeansWithAll(k, img, bitarr[i], resizeSize, bgmasks)
+		res, err := prominentcolor.KmeansWithAll(k, img, bitarr[i], resizeSize, bgmasks)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 		str += outputTitle(prefix + bitInfo(bitarr[i]))
 		str += outputColorRange(res)
 	}

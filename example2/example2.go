@@ -10,7 +10,7 @@ import (
 
 	"fmt"
 
-	prominentcolor "../"
+	prominentcolor ".."
 )
 
 func loadImage(fileInput string) (image.Image, error) {
@@ -51,7 +51,11 @@ func main() {
 			log.Printf("Error: failed loading %s\n", file)
 			continue
 		}
-		cols := prominentcolor.KmeansWithArgs(prominentcolor.ArgumentNoCropping|prominentcolor.ArgumentDebugImage, img)
+		cols, err := prominentcolor.KmeansWithArgs(prominentcolor.ArgumentNoCropping|prominentcolor.ArgumentDebugImage, img)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 		col := cols[0].AsString()
 		base := filepath.Base(file)
 		fmt.Printf("convert %s -resize 800x356 -background '#%s' -gravity center -extent 800x356 %s%s\n", base, col, outputDirectory, base)
