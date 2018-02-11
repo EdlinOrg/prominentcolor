@@ -152,9 +152,15 @@ func prepareImg(arguments int, bgmasks []ColorBackgroundMask, imageSize uint, or
 		}
 	}
 
-	img := resize.Resize(imageSize, 0, orgimg, resize.Lanczos3)
+	// Don't resize if the image is smaller than imageSize
+	rec := orgimg.Bounds()
 
-	return ProcessImg(arguments, bgmasks, img)
+	if uint(rec.Dx()) > imageSize || uint(rec.Dy()) > imageSize {
+		img := resize.Resize(imageSize, 0, orgimg, resize.Lanczos3)
+		return ProcessImg(arguments, bgmasks, img)
+	}
+
+	return ProcessImg(arguments, bgmasks, orgimg)
 }
 
 // markPixel sets a purple color (to make it stick out if we want to look at the image) and makes the pixel transparent
