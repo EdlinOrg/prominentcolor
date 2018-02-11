@@ -108,6 +108,21 @@ func KmeansWithAll(k int, orgimg image.Image, arguments int, imageReSize uint, b
 
 	allColors, _ := extractColorsAsArray(img)
 
+	numColors := len(allColors)
+
+	if numColors == 0 {
+		return nil, fmt.Errorf("Failed, no non-alpha pixels found (either fully transparent image, or the ColorBackgroundMask removed all pixels)")
+	}
+
+	if numColors == 1 {
+		return allColors, nil
+	}
+
+	if numColors <= k {
+		sortCentroids(allColors)
+		return allColors, nil
+	}
+
 	centroids, err := kmeansSeed(k, allColors, arguments)
 	if err != nil {
 		return nil, err
@@ -255,6 +270,7 @@ func extractColorsAsArray(img image.Image) ([]ColorItem, int) {
 		v[idx] = value
 		idx++
 	}
+
 	return v, numPixels
 }
 
