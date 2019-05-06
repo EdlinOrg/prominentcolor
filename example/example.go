@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 
 	prominentcolor ".."
@@ -43,12 +42,10 @@ func outputTitle(str string) string {
 }
 
 func processBatch(k int, bitarr []int, img image.Image) string {
+	var buff strings.Builder
 
-	str := ""
-	prefix := "K=" + strconv.Itoa(k)
-
+	prefix := fmt.Sprintf("K=%d, ", k)
 	resizeSize := uint(prominentcolor.DefaultSize)
-
 	bgmasks := prominentcolor.GetDefaultMasks()
 
 	for i := 0; i < len(bitarr); i++ {
@@ -57,11 +54,11 @@ func processBatch(k int, bitarr []int, img image.Image) string {
 			log.Println(err)
 			continue
 		}
-		str += outputTitle(prefix + bitInfo(bitarr[i]))
-		str += outputColorRange(res)
+		buff.WriteString(outputTitle(prefix + bitInfo(bitarr[i])))
+		buff.WriteString(outputColorRange(res))
 	}
 
-	return str
+	return buff.String()
 }
 
 func bitInfo(bits int) string {
