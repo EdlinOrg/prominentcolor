@@ -65,34 +65,33 @@ func processBatch(k int, bitarr []int, img image.Image) string {
 }
 
 func bitInfo(bits int) string {
-
-	str := ""
-
+	list := make([]string, 0, 4)
+	// random seed or Kmeans++
 	if prominentcolor.IsBitSet(bits, prominentcolor.ArgumentSeedRandom) {
-		str += ", Random seed"
+		list = append(list, "Random seed")
 	} else {
-		str += ", Kmeans++"
+		list = append(list, "Kmeans++")
 	}
-
+	// Mean or median
 	if prominentcolor.IsBitSet(bits, prominentcolor.ArgumentAverageMean) {
-		str += ", Mean"
+		list = append(list, "Mean")
 	} else {
-		str += ", Median"
+		list = append(list, "Median")
 	}
-
+	// LAB or RGB
 	if prominentcolor.IsBitSet(bits, prominentcolor.ArgumentLAB) {
-		str += ", LAB"
+		list = append(list, "LAB")
 	} else {
-		str += ", RGB"
+		list = append(list, "RGB")
 	}
-
+	// Cropping or not
 	if prominentcolor.IsBitSet(bits, prominentcolor.ArgumentNoCropping) {
-		str += ", No cropping"
+		list = append(list, "No cropping")
 	} else {
-		str += ", Cropping center"
+		list = append(list, "Cropping center")
 	}
-
-	return str
+	// Done
+	return strings.Join(list, ", ")
 }
 
 func main() {
