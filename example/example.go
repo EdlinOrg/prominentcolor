@@ -96,40 +96,47 @@ func bitInfo(bits int) string {
 }
 
 func main() {
-
+	// Prepare
 	outputDirectory := "./"
 	dataDirectory := "./"
-
-	itemIds := [...]int{28922730122, 28411051634, 27417460620, 28930160605, 25535163354, 26939476984, 6833735316, 8527042251}
-
 	str := "<html><body><h1>Colors listed in order of dominance: hex color followed by number of entries</h1><table border=\"1\">"
 
-	for _, itemId := range itemIds {
-
-		kk := []int{prominentcolor.ArgumentAverageMean | prominentcolor.ArgumentNoCropping, prominentcolor.ArgumentNoCropping, prominentcolor.ArgumentDefault}
-
-		filename := dataDirectory + strconv.Itoa(itemId) + ".jpg"
+	// for each file within working directory
+	files, err := ioutil.ReadDir(dataDirectory)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, f := range files {
+		filename := f.Name()
+		// Only process jpg
+		if !strings.HasSuffix(filename, ".jpg") {
+			continue
+		}
+		// Define the differents sets of params
+		kk := []int{
+			prominentcolor.ArgumentAverageMean | prominentcolor.ArgumentNoCropping,
+			prominentcolor.ArgumentNoCropping,
+			prominentcolor.ArgumentDefault
+		}
+		// Load the image
 		img, err := loadImage(filename)
-
 		if err != nil {
 			log.Printf("Error loading image %s\n", filename)
 			log.Println(err)
 			continue
 		}
-
+		// Process & html output
 		str += "<tr><td><img src=\"" + filename + "\" width=\"200\" border=\"1\"></td><td>"
-
 		str += processBatch(3, kk, img)
-
 		str += "</td></tr>"
 	}
 
+	// Finalize the html output
 	str += "</table></body><html>"
 
-	d1 := []byte(str)
-	err := ioutil.WriteFile(outputDirectory+"output.html", d1, 0644)
+	// And write it to the disk
+	err := ioutil.WriteFile(outputDirectory+"output.html", []byte(str), 0644)
 	if err != nil {
 		panic(err)
 	}
-
 }
