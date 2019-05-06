@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-
 	"strconv"
+	"strings"
 
 	prominentcolor ".."
 )
@@ -115,7 +115,7 @@ func main() {
 		kk := []int{
 			prominentcolor.ArgumentAverageMean | prominentcolor.ArgumentNoCropping,
 			prominentcolor.ArgumentNoCropping,
-			prominentcolor.ArgumentDefault
+			prominentcolor.ArgumentDefault,
 		}
 		// Load the image
 		img, err := loadImage(filename)
@@ -134,8 +134,7 @@ func main() {
 	str += "</table></body><html>"
 
 	// And write it to the disk
-	err := ioutil.WriteFile(outputDirectory+"output.html", []byte(str), 0644)
-	if err != nil {
+	if err = ioutil.WriteFile(outputDirectory+"output.html", []byte(str), 0644); err != nil {
 		panic(err)
 	}
 }
