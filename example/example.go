@@ -95,7 +95,9 @@ func main() {
 	// Prepare
 	outputDirectory := "./"
 	dataDirectory := "./"
-	str := "<html><body><h1>Colors listed in order of dominance: hex color followed by number of entries</h1><table border=\"1\">"
+
+	var buff strings.Builder
+	buff.WriteString("<html><body><h1>Colors listed in order of dominance: hex color followed by number of entries</h1><table border=\"1\">")
 
 	// for each file within working directory
 	files, err := ioutil.ReadDir(dataDirectory)
@@ -122,16 +124,16 @@ func main() {
 			continue
 		}
 		// Process & html output
-		str += "<tr><td><img src=\"" + filename + "\" width=\"200\" border=\"1\"></td><td>"
-		str += processBatch(3, kk, img)
-		str += "</td></tr>"
+		buff.WriteString("<tr><td><img src=\"" + filename + "\" width=\"200\" border=\"1\"></td><td>")
+		buff.WriteString(processBatch(3, kk, img))
+		buff.WriteString("</td></tr>")
 	}
 
 	// Finalize the html output
-	str += "</table></body><html>"
+	buff.WriteString("</table></body><html>")
 
 	// And write it to the disk
-	if err = ioutil.WriteFile(outputDirectory+"output.html", []byte(str), 0644); err != nil {
+	if err = ioutil.WriteFile(outputDirectory+"output.html", []byte(buff.String()), 0644); err != nil {
 		panic(err)
 	}
 }
