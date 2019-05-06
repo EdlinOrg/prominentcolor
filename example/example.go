@@ -28,13 +28,13 @@ func loadImage(fileInput string) (image.Image, error) {
 }
 
 func outputColorRange(colorRange []prominentcolor.ColorItem) string {
-
-	str := "<table><tr>"
+	var buff strings.Builder
+	buff.WriteString("<table><tr>")
 	for _, color := range colorRange {
-		str += fmt.Sprintf("<td style=\"background-color: #%s;width:200px;height:50px;text-align:center;\">#%s %d</td>", color.AsString(), color.AsString(), color.Cnt)
+		buff.WriteString(fmt.Sprintf("<td style=\"background-color: #%s;width:200px;height:50px;text-align:center;\">#%s %d</td>", color.AsString(), color.AsString(), color.Cnt))
 	}
-	str += "</tr></table>"
-	return str
+	buff.WriteString("</tr></table>")
+	return buff.String()
 }
 
 func outputTitle(str string) string {
