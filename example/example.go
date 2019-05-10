@@ -7,8 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-
-	"strconv"
+	"strings"
 
 	prominentcolor ".."
 )
@@ -29,13 +28,13 @@ func loadImage(fileInput string) (image.Image, error) {
 }
 
 func outputColorRange(colorRange []prominentcolor.ColorItem) string {
-
-	str := "<table><tr>"
+	var buff strings.Builder
+	buff.WriteString("<table><tr>")
 	for _, color := range colorRange {
-		str += fmt.Sprintf("<td style=\"background-color: #%s;width:200px;height:50px;text-align:center;\">#%s %d</td>", color.AsString(), color.AsString(), color.Cnt)
+		buff.WriteString(fmt.Sprintf("<td style=\"background-color: #%s;width:200px;height:50px;text-align:center;\">#%s %d</td>", color.AsString(), color.AsString(), color.Cnt))
 	}
-	str += "</tr></table>"
-	return str
+	buff.WriteString("</tr></table>")
+	return buff.String()
 }
 
 func outputTitle(str string) string {
@@ -43,12 +42,10 @@ func outputTitle(str string) string {
 }
 
 func processBatch(k int, bitarr []int, img image.Image) string {
+	var buff strings.Builder
 
-	str := ""
-	prefix := "K=" + strconv.Itoa(k)
-
+	prefix := fmt.Sprintf("K=%d, ", k)
 	resizeSize := uint(prominentcolor.DefaultSize)
-
 	bgmasks := prominentcolor.GetDefaultMasks()
 
 	for i := 0; i < len(bitarr); i++ {
@@ -57,79 +54,86 @@ func processBatch(k int, bitarr []int, img image.Image) string {
 			log.Println(err)
 			continue
 		}
-		str += outputTitle(prefix + bitInfo(bitarr[i]))
-		str += outputColorRange(res)
+		buff.WriteString(outputTitle(prefix + bitInfo(bitarr[i])))
+		buff.WriteString(outputColorRange(res))
 	}
 
-	return str
+	return buff.String()
 }
 
 func bitInfo(bits int) string {
-
-	str := ""
-
+	list := make([]string, 0, 4)
+	// random seed or Kmeans++
 	if prominentcolor.IsBitSet(bits, prominentcolor.ArgumentSeedRandom) {
-		str += ", Random seed"
+		list = append(list, "Random seed")
 	} else {
-		str += ", Kmeans++"
+		list = append(list, "Kmeans++")
 	}
-
+	// Mean or median
 	if prominentcolor.IsBitSet(bits, prominentcolor.ArgumentAverageMean) {
-		str += ", Mean"
+		list = append(list, "Mean")
 	} else {
-		str += ", Median"
+		list = append(list, "Median")
 	}
-
+	// LAB or RGB
 	if prominentcolor.IsBitSet(bits, prominentcolor.ArgumentLAB) {
-		str += ", LAB"
+		list = append(list, "LAB")
 	} else {
-		str += ", RGB"
+		list = append(list, "RGB")
 	}
-
+	// Cropping or not
 	if prominentcolor.IsBitSet(bits, prominentcolor.ArgumentNoCropping) {
-		str += ", No cropping"
+		list = append(list, "No cropping")
 	} else {
-		str += ", Cropping center"
+		list = append(list, "Cropping center")
 	}
-
-	return str
+	// Done
+	return strings.Join(list, ", ")
 }
 
 func main() {
-
+	// Prepare
 	outputDirectory := "./"
 	dataDirectory := "./"
 
-	itemIds := [...]int{28922730122, 28411051634, 27417460620, 28930160605, 25535163354, 26939476984, 6833735316, 8527042251}
+	var buff strings.Builder
+	buff.WriteString("<html><body><h1>Colors listed in order of dominance: hex color followed by number of entries</h1><table border=\"1\">")
 
-	str := "<html><body><h1>Colors listed in order of dominance: hex color followed by number of entries</h1><table border=\"1\">"
-
-	for _, itemId := range itemIds {
-
-		kk := []int{prominentcolor.ArgumentAverageMean | prominentcolor.ArgumentNoCropping, prominentcolor.ArgumentNoCropping, prominentcolor.ArgumentDefault}
-
-		filename := dataDirectory + strconv.Itoa(itemId) + ".jpg"
+	// for each file within working directory
+	files, err := ioutil.ReadDir(dataDirectory)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, f := range files {
+		filename := f.Name()
+		// Only process jpg
+		if !strings.HasSuffix(filename, ".jpg") {
+			continue
+		}
+		// Define the differents sets of params
+		kk := []int{
+			prominentcolor.ArgumentAverageMean | prominentcolor.ArgumentNoCropping,
+			prominentcolor.ArgumentNoCropping,
+			prominentcolor.ArgumentDefault,
+		}
+		// Load the image
 		img, err := loadImage(filename)
-
 		if err != nil {
 			log.Printf("Error loading image %s\n", filename)
 			log.Println(err)
 			continue
 		}
-
-		str += "<tr><td><img src=\"" + filename + "\" width=\"200\" border=\"1\"></td><td>"
-
-		str += processBatch(3, kk, img)
-
-		str += "</td></tr>"
+		// Process & html output
+		buff.WriteString("<tr><td><img src=\"" + filename + "\" width=\"200\" border=\"1\"></td><td>")
+		buff.WriteString(processBatch(3, kk, img))
+		buff.WriteString("</td></tr>")
 	}
 
-	str += "</table></body><html>"
+	// Finalize the html output
+	buff.WriteString("</table></body><html>")
 
-	d1 := []byte(str)
-	err := ioutil.WriteFile(outputDirectory+"output.html", d1, 0644)
-	if err != nil {
+	// And write it to the disk
+	if err = ioutil.WriteFile(outputDirectory+"output.html", []byte(buff.String()), 0644); err != nil {
 		panic(err)
 	}
-
 }
