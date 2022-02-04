@@ -51,6 +51,9 @@ var (
 	MaskGreen = ColorBackgroundMask{R: false, G: true, B: false, PercDiff: 0.9}
 )
 
+// ErrNoPixelsFound is returned when no non-alpha pixels are found in the provided image
+var ErrNoPixelsFound = fmt.Errorf("Failed, no non-alpha pixels found (either fully transparent image, or the ColorBackgroundMask removed all pixels)")
+
 // ColorRGB contains the color values
 type ColorRGB struct {
 	R, G, B uint32
@@ -111,7 +114,7 @@ func KmeansWithAll(k int, orgimg image.Image, arguments int, imageReSize uint, b
 	numColors := len(allColors)
 
 	if numColors == 0 {
-		return nil, fmt.Errorf("Failed, no non-alpha pixels found (either fully transparent image, or the ColorBackgroundMask removed all pixels)")
+		return nil, ErrNoPixelsFound
 	}
 
 	if numColors == 1 {
